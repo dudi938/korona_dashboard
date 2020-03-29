@@ -1,0 +1,48 @@
+version: 2.1
+orbs:
+  node: circleci/node@1.1.6
+jobs:
+  build-and-test:
+    executor:
+      name: node/default
+    steps:
+      - checkout
+      - setup_remote_docker
+
+      - run: | 
+          docker build -t korona_dashboard .
+          docker tag korona_dashboard dudi938/korona_dashboard
+          echo $DOCKER_PASS | docker login -u dudi938 --password-stdin
+          docker push dudi938/korona_dashboard
+  deploy:
+    machine:
+      enabled: true
+    steps:
+      - checkout
+      - run:
+          name: Deploy Over SSH
+          command: |
+            ssh ubuntu@3.21.190.19 \<< EOF
+            #IMAGE_TAG=latest
+            #CONTAINER_NAME=korona_dashboard
+            sudo service docker start 
+
+
+            if [ ! "$(docker ps -q -f name=korona_dashboard)" ]; then
+                sudo docker rm -f korona_dashboard
+            else
+              echo "container korona_dashboard not exist"
+              echo ***  [ "$(sudo docker ps -aq -f name=korona_dashboard)" ] ***
+            fi
+
+            echo "start container name korona_dashboard based of image dudi938/korona_dashboard"
+            sudo docker run -d  --name=korona_dashboard -p 3000:3000 dudi938/korona_dashboard
+            EOF
+             
+workflows:
+    build-and-test:
+      jobs:
+        - build-and-test
+        - deploy:
+            requires:
+              - build-and-test
