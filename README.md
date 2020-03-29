@@ -17,7 +17,7 @@ This pipline will trigger for each commit.
 
 ## The pipline do the below actions:
 1. Build new docker image with the last changes
-2. Push the new image dudi938/korona_dashboard repo on docker hub
+2. Push the new image to dudi938/korona_dashboard repo on docker hub
 3. deploy via ssh the new image to the ec2 instance
    note: if the korona_dashboard already on on the ec2 vm then i kill him and run the new image.
 
